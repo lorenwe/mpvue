@@ -8,6 +8,7 @@ module.exports = async (ctx) => {
         .where('id', id)
         .first()
     const info = JSON.parse(detali.user_info)
+    await mysql('books').where('id', id).increment('count', 1)
     ctx.state.data = Object.assign({}, detali, {
         tags: detali.tags.split(','),
         summary: detali.summary.split('\n'),
@@ -16,5 +17,4 @@ module.exports = async (ctx) => {
             avatarUrl: info.avatarUrl
         }
     })
-    mysql('books').where('id', id).increment('count', 1)
 }

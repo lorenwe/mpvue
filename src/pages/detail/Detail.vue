@@ -1,7 +1,8 @@
 <template>
   <div>
     <BookInfo :info="info"></BookInfo>
-    <div class="comment">
+    <CommentList :comments="comments"></CommentList>
+    <div class="comment" v-if="showwAdd">
       <textarea v-model="comment"
                 class="textarea"
                 :maxlength="100"
@@ -19,43 +20,79 @@
       </div>
       <button class="btn" @click="addComment">评论</button>
     </div>
+    <div v-else class="text-footer">
+      {{tips}}
+    </div>
   </div>
 </template>
 <script>
   import {get, post} from '@/request'
+  import {showModel} from '@/util'
   import BookInfo from '@/components/BookInfo'
+  import CommentList from '@/components/CommentList'
+  import qcloud from '@/utils/login-auth/index'
   export default {
     components: {
-      BookInfo
+      BookInfo,
+      CommentList
     },
     data () {
       return {
+        userinfo: {},
         bookid: 0,
         info: {},
         comment: '',
         location: '',
         phone: '',
-        comments: []
+        comments: [],
+        tips: ''
+      }
+    },
+    computed: {
+      showwAdd () {
+        // 没登入
+        if (!this.userinfo.openId) {
+          this.tips = '未登入'
+          return false
+        }
+        // 已经评论过的
+        if (this.comments.filter(v => v.openid === this.userinfo.openId).length) {
+          this.tips = '已经评论过啦'
+          return false
+        }
+        return true
       }
     },
     mounted () {
       this.bookid = this.$root.$mp.query.id
       this.getDetail()
       this.getComments()
+      this.getUserInfo()
     },
     methods: {
       async addComment () {
-        const info = await post('/weapp/addcomment', {
-          comment: this.comment,
-          phone: this.phone,
-          location: this.location,
-          bookid: this.bookid
-        })
-        console.log(info)
+        if (!this.comment) {
+          return
+        }
+        try {
+          await post('/weapp/addcomment', {
+            openid: this.userinfo.openid,
+            comment: this.comment,
+            phone: this.phone,
+            location: this.location,
+            bookid: this.bookid
+          })
+          this.comment = ''
+          this.getComments()
+        } catch (e) {
+          showModel('失败', e.msg)
+        }
       },
       async getComments () {
         const comments = await get('/weapp/commentlist', {bookid: this.bookid})
-        this.comments = comments
+        // console.log(comments.data.data.list)
+        this.comments = comments.data.data.list
+        // console.log(this.comments)
       },
       getGeo (e) {
         if (e.target.value) {
@@ -84,6 +121,18 @@
           title: info.data.data.title
         })
         this.info = info.data.data
+      },
+      getUserInfo () {
+        const session = qcloud.Session.get()
+        if (session) {
+          // console.log(session)
+          // 判断超时
+          let oldTime = session.time
+          let curTime = parseInt(new Date().getTime() / 1000)
+          if (curTime - oldTime < 60 * 60 * 5) {
+            this.userinfo = session.userinfo
+          }
+        }
       }
     }
   }

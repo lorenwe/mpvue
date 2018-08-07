@@ -17,21 +17,30 @@
     text-align: center;
     font-size: 20rpx;
   }
-  .container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 200rpx 0;
-    box-sizing: border-box;
-  }
+  /*.container {*/
+    /*height: 100%;*/
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*align-items: center;*/
+    /*justify-content: space-between;*/
+    /*padding: 200rpx 0;*/
+    /*box-sizing: border-box;*/
+  /*}*/
   /* this rule will be remove */
   * {
     transition: width 2s;
     -moz-transition: width 2s;
     -webkit-transition: width 2s;
     -o-transition: width 2s;
+  }
+  .page-title {
+    padding-left: 20px;
+    background: #eee;
+    line-height: 40px;
+    font-size: 14px;
+  }
+  .right {
+    float: right;
   }
   .btn {
     color: white;
